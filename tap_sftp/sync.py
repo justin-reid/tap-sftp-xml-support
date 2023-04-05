@@ -4,6 +4,7 @@ from singer import Transformer, metadata, utils
 from tap_sftp import client, stats
 from tap_sftp.aws_ssm import AWS_SSM
 from tap_sftp.singer_encodings import csv_handler
+from tap_sftp import xml_utils
 
 LOGGER = singer.get_logger()
 
@@ -67,7 +68,11 @@ def sync_file(sftp_file_spec, stream, table_spec, config, sftp_client):
             'sanitize_header': table_spec.get('sanitize_header', False),
             'skip_rows': table_spec.get('skip_rows', False)}
 
-    readers = csv_handler.get_row_iterators(file_handle, options=opts, infer_compression=True)
+    csv_data = file_handle
+    if file_handle.name.endswith('.xml'):
+        csv_data = xml_utils.convert_xml_to_csv(file_handle, config['xml_fields'])
+
+    readers = csv_handler.get_row_iterators(csv_data, options=opts, infer_compression=True)
 
     records_synced = 0
 

@@ -1,5 +1,6 @@
 import re
 from tap_sftp.aws_ssm import AWS_SSM
+from tap_sftp import xml_utils
 from . import csv_handler
 
 SDC_SOURCE_FILE_COLUMN = "_sdc_source_file"
@@ -45,7 +46,11 @@ def sample_file(conn, table_spec, f, sample_rate, max_records, config):
             'sanitize_header': table_spec.get('sanitize_header', False),
             'skip_rows': table_spec.get('skip_rows', 0)}
 
-    readers = csv_handler.get_row_iterators(file_handle, options=opts, infer_compression=True)
+    csv_data = file_handle
+    if file_handle.name.endswith('.xml'):
+        csv_data = xml_utils.convert_xml_to_csv(file_handle, config['xml_fields'])
+
+    readers = csv_handler.get_row_iterators(csv_data, options=opts, infer_compression=True)
 
     for reader in readers:
         current_row = 0

@@ -46,6 +46,7 @@ Create a `config.json` file with connection details to snowflake.
                 "skip_rows": 0
             }
         ],
+        "xml_fields": [],
         "start_date":"2021-01-28",
         "decryption_configs": {
             "SSM_key_name": "SSM_PARAMETER_KEY_NAME",
@@ -62,6 +63,7 @@ Create a `config.json` file with connection details to snowflake.
    - `username`: Username for the SFTP server
    - `port`: Port number for the SFTP server
    - `tables`: An array of tables to load. See table configuration below
+   - `xml_fields`: An array of XML fields to extract when processing XML files - This is required if you will be ingesting XML files from the SFTP server
    - `start_date`: Earliest file date to synchronize
    - either `password` or `private_key_file`: Authentication to the SFTP Server
 
