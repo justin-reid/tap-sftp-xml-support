@@ -43,7 +43,8 @@ Create a `config.json` file with connection details to snowflake.
                 "delimiter": ",",
                 "encoding": "utf-8",
                 "sanitize_header": false,
-                "skip_rows": 0
+                "skip_rows": 0,
+                "infer_schema": false,
             }
         ],
         "xml_fields": [],
@@ -79,6 +80,7 @@ Create a `config.json` file with connection details to snowflake.
    - `encoding`: File encoding, defaults to `utf-8`
    - `sanitize_header`: Boolean, specifies whether to clean up header names so that they are more likely to be accepted by a target SQL database
    - `skip_rows`: Integer, specifies the number of rows to skip at the top of the file to handle non-data content like comments or other text. Default 0.
+   - `infer_schema`: Boolean. If set to true (the default value), the tap will attempt to detect the data type of the fields. Otherwise all fields will be treated as strings.
 
 ## Discovery mode:
 

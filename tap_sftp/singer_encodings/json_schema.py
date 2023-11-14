@@ -44,7 +44,8 @@ def sample_file(conn, table_spec, f, sample_rate, max_records, config):
             'file_name': f['filepath'],
             'encoding': table_spec.get('encoding', 'utf-8'),
             'sanitize_header': table_spec.get('sanitize_header', False),
-            'skip_rows': table_spec.get('skip_rows', 0)}
+            'skip_rows': table_spec.get('skip_rows', 0),
+            'infer_schema': table_spec.get('infer_schema', True)}
 
     csv_data = file_handle
     if file_handle.name.endswith('.xml'):
@@ -183,7 +184,7 @@ def generate_schema(samples, table_spec):
 
     schema = {}
     for key, value in type_summary.items():
-        datatype = pick_datatype(value)
+        datatype = pick_datatype(value) if table_spec['infer_schema'] else 'string'
 
         if datatype == 'date-time':
             schema[key] = {
