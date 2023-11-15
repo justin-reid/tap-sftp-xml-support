@@ -184,7 +184,7 @@ def generate_schema(samples, table_spec):
 
     schema = {}
     for key, value in type_summary.items():
-        datatype = pick_datatype(value) if table_spec['infer_schema'] else 'string'
+        datatype = pick_datatype(value) if table_spec.get('infer_schema', True) else 'string'
 
         if datatype == 'date-time':
             schema[key] = {
