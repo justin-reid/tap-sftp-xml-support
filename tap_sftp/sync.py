@@ -66,7 +66,8 @@ def sync_file(sftp_file_spec, stream, table_spec, config, sftp_client):
             'file_name': sftp_file_spec['filepath'],
             'encoding': table_spec.get('encoding', 'utf-8'),
             'sanitize_header': table_spec.get('sanitize_header', False),
-            'skip_rows': table_spec.get('skip_rows', False)}
+            'skip_rows': table_spec.get('skip_rows', False),
+            'infer_schema': table_spec.get('infer_schema', True)}
 
     csv_data = file_handle
     if file_handle.name.endswith('.xml'):
