@@ -38,12 +38,12 @@ class SFTPConnection():
 
         self.__connect()
 
-    # If connection is snapped during connect flow, retry up to a
-    # minute for SSH connection to succeed. 2^6 + 2^5 + ...
+    # If connection is snapped during connect flow, retry up to two
+    # minutes for SSH connection to succeed. 2^7 + 2^6 + ...
     @backoff.on_exception(
         backoff.expo,
         (EOFError, SSHException),
-        max_tries=6,
+        max_tries=7,
         on_backoff=handle_backoff,
         jitter=None,
         factor=2)
