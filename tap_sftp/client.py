@@ -42,25 +42,35 @@ class SFTPConnection():
     # minute for SSH connection to succeed. 2^6 + 2^5 + ...
     @backoff.on_exception(
         backoff.expo,
-        (EOFError),
+        (EOFError, SSHException),
         max_tries=6,
         on_backoff=handle_backoff,
         jitter=None,
         factor=2)
     def __connect(self):
+        LOGGER.info('Creating new connection to SFTP...')
+        self._attempt_connection()
+        LOGGER.info('Connection successful')
+
+    def _attempt_connection(self):
         try:
-            LOGGER.info('Creating new connection to SFTP...')
             self.transport = paramiko.Transport((self.host, self.port))
             self.transport.use_compression(True)
             self.transport.connect(username=self.username, password=self.password, hostkey=None, pkey=self.key)
             self.__sftp = paramiko.SFTPClient.from_transport(self.transport)
-            LOGGER.info('Connection successful')
         except (AuthenticationException, SSHException) as ex:
+<<<<<<< HEAD
             self.transport.close()
             self.transport = paramiko.Transport((self.host, self.port))
             self.transport.use_compression(True)
             self.transport.connect(username=self.username, password=self.password, hostkey=None, pkey=None)
             self.__sftp = paramiko.SFTPClient.from_transport(self.transport)
+=======
+            LOGGER.warning('Connection attempt failed: %s', ex)
+            if self.transport is not None:
+                self.transport.close()
+            raise
+>>>>>>> c0efbf7 (Retry on SSHExceptions)
 
     @property
     def sftp(self):
