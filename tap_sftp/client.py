@@ -60,8 +60,7 @@ class SFTPConnection():
             self.__sftp = paramiko.SFTPClient.from_transport(self.transport)
         except (AuthenticationException, SSHException) as ex:
             LOGGER.warning('Connection attempt failed: %s', ex)
-            if self.transport is not None:
-                self.transport.close()
+            self.close()
             raise
 
     @property
@@ -74,8 +73,11 @@ class SFTPConnection():
         self.__sftp = sftp
 
     def close(self):
-        self.sftp.close()
-        self.transport.close()
+        if hasattr(self, 'sftp') and self.sftp is not None:
+            self.sftp.close()
+
+        if self.transport is not None:
+            self.transport.close()
         # decrypted files require an open file object, so close it
         if self.decrypted_file:
             self.decrypted_file.close()
