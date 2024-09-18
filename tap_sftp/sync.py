@@ -44,8 +44,11 @@ def sync_stream(config, state, stream, sftp_client):
         records_streamed += sync_file(sftp_file, stream, table_spec, config, sftp_client)
         if sftp_file['last_modified'] > latest_modified:
             latest_modified = sftp_file['last_modified']
-            state = singer.write_bookmark(state, table_name, 'modified_since', latest_modified.isoformat())
-            singer.write_state(state)
+
+    # Update bookmark only once, after processing all files
+    if latest_modified > modified_since:
+        state = singer.write_bookmark(state, table_name, 'modified_since', latest_modified.isoformat())
+        singer.write_state(state)
 
     LOGGER.info('Wrote %s records for table "%s".', records_streamed, table_name)
 
