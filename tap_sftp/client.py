@@ -2,7 +2,6 @@ import os
 import re
 import stat
 import tempfile
-import time
 from datetime import datetime
 
 import backoff
@@ -30,7 +29,7 @@ class SFTPConnection():
         self.port = int(port or 22)
         self.decrypted_file = None
         self.key = None
-        self.transport = None
+        self.sftp = None
 
         if private_key_file:
             key_path = os.path.expanduser(private_key_file)
@@ -54,30 +53,26 @@ class SFTPConnection():
 
     def _attempt_connection(self):
         try:
-            self.transport = paramiko.Transport((self.host, self.port))
-            self.transport.use_compression(True)
-            self.transport.connect(username=self.username, password=self.password, hostkey=None, pkey=self.key)
-            self.__sftp = paramiko.SFTPClient.from_transport(self.transport)
+            ssh_client = paramiko.SSHClient()
+            ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            ssh_client.connect(
+                hostname=self.host,
+                port=self.port,
+                username=self.username,
+                password=self.password,
+                pkey=self.key,
+                compress=True
+            )
+            self.sftp = ssh_client.open_sftp()
         except (AuthenticationException, SSHException) as ex:
             LOGGER.warning('Connection attempt failed: %s', ex)
-            self.close()
+            if ssh_client:
+                ssh_client.close()
             raise
-
-    @property
-    def sftp(self):
-        # self.__connect()
-        return self.__sftp
-
-    @sftp.setter
-    def sftp(self, sftp):
-        self.__sftp = sftp
 
     def close(self):
         if hasattr(self, 'sftp') and self.sftp is not None:
             self.sftp.close()
-
-        if self.transport is not None:
-            self.transport.close()
         # decrypted files require an open file object, so close it
         if self.decrypted_file:
             self.decrypted_file.close()
