@@ -2,7 +2,6 @@ import os
 import re
 import stat
 import tempfile
-import time
 from datetime import datetime
 
 import backoff
@@ -30,7 +29,7 @@ class SFTPConnection():
         self.port = int(port or 22)
         self.decrypted_file = None
         self.key = None
-        self.transport = None
+        self.sftp = None
 
         if private_key_file:
             key_path = os.path.expanduser(private_key_file)
@@ -38,42 +37,43 @@ class SFTPConnection():
 
         self.__connect()
 
-    # If connection is snapped during connect flow, retry up to a
-    # minute for SSH connection to succeed. 2^6 + 2^5 + ...
+    # If connection is snapped during connect flow, retry up to two
+    # minutes for SSH connection to succeed. 2^7 + 2^6 + ...
     @backoff.on_exception(
         backoff.expo,
-        (EOFError),
-        max_tries=6,
+        (EOFError, SSHException),
+        max_tries=7,
         on_backoff=handle_backoff,
         jitter=None,
         factor=2)
     def __connect(self):
+        LOGGER.info('Creating new connection to SFTP...')
+        self._attempt_connection()
+        LOGGER.info('Connection successful')
+
+    def _attempt_connection(self):
         try:
-            LOGGER.info('Creating new connection to SFTP...')
-            self.transport = paramiko.Transport((self.host, self.port))
-            self.transport.use_compression(True)
-            self.transport.connect(username=self.username, password=self.password, hostkey=None, pkey=self.key)
-            self.__sftp = paramiko.SFTPClient.from_transport(self.transport)
-            LOGGER.info('Connection successful')
+            ssh_client = paramiko.SSHClient()
+            ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            ssh_client.connect(
+                hostname=self.host,
+                port=self.port,
+                username=self.username,
+                password=self.password,
+                pkey=self.key,
+                compress=True,
+                timeout=60
+            )
+            self.sftp = ssh_client.open_sftp()
         except (AuthenticationException, SSHException) as ex:
-            self.transport.close()
-            self.transport = paramiko.Transport((self.host, self.port))
-            self.transport.use_compression(True)
-            self.transport.connect(username=self.username, password=self.password, hostkey=None, pkey=None)
-            self.__sftp = paramiko.SFTPClient.from_transport(self.transport)
-
-    @property
-    def sftp(self):
-        # self.__connect()
-        return self.__sftp
-
-    @sftp.setter
-    def sftp(self, sftp):
-        self.__sftp = sftp
+            LOGGER.warning('Connection attempt failed: %s', ex)
+            if ssh_client:
+                ssh_client.close()
+            raise
 
     def close(self):
-        self.sftp.close()
-        self.transport.close()
+        if self.sftp is not None:
+            self.sftp.close()
         # decrypted files require an open file object, so close it
         if self.decrypted_file:
             self.decrypted_file.close()
