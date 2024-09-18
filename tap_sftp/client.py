@@ -139,13 +139,13 @@ class SFTPConnection():
             LOGGER.info('Found %s files in "%s" matching "%s"', len(matching_files), prefix, search_pattern)
         else:
             LOGGER.warning('Found no files on specified SFTP server at "%s" matching "%s"', prefix, search_pattern)
-
-        for f in matching_files:
-            LOGGER.info("Found file: %s", f['filepath'])
     
         if modified_since is not None:
             LOGGER.info("Processing files modified since: %s", modified_since)
             matching_files = [f for f in matching_files if f["last_modified"] > modified_since]
+
+        for f in matching_files:
+            LOGGER.info("Found file: %s", f['filepath'])
         
         matching_files = sorted(matching_files, key=lambda x: x["last_modified"])
         return matching_files
