@@ -32,7 +32,6 @@ def sync_stream(config, state, stream, sftp_client):
         table_spec["search_pattern"],
         modified_since
     )
-    # sftp_client.close()
 
     LOGGER.info('Found %s files to be synced.', len(files))
 
@@ -42,8 +41,10 @@ def sync_stream(config, state, stream, sftp_client):
 
     for sftp_file in files:
         records_streamed += sync_file(sftp_file, stream, table_spec, config, sftp_client)
-        state = singer.write_bookmark(state, table_name, 'modified_since', sftp_file['last_modified'].isoformat())
+        last_modified = sftp_file['last_modified'].isoformat()
+        state = singer.write_bookmark(state, table_name, 'modified_since', last_modified)
         singer.write_state(state)
+        LOGGER.info('Updated bookmark to %s', last_modified)        
 
     LOGGER.info('Wrote %s records for table "%s".', records_streamed, table_name)
 
