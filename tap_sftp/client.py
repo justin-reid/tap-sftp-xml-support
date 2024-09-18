@@ -61,7 +61,8 @@ class SFTPConnection():
                 username=self.username,
                 password=self.password,
                 pkey=self.key,
-                compress=True
+                compress=True,
+                timeout=60
             )
             self.sftp = ssh_client.open_sftp()
         except (AuthenticationException, SSHException) as ex:
@@ -71,7 +72,7 @@ class SFTPConnection():
             raise
 
     def close(self):
-        if hasattr(self, 'sftp') and self.sftp is not None:
+        if self.sftp is not None:
             self.sftp.close()
         # decrypted files require an open file object, so close it
         if self.decrypted_file:
