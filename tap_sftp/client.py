@@ -142,8 +142,9 @@ class SFTPConnection():
 
         for f in matching_files:
             LOGGER.info("Found file: %s", f['filepath'])
-
+    
         if modified_since is not None:
+            LOGGER.info("Processing files modified since: %s", modified_since)
             matching_files = [f for f in matching_files if f["last_modified"] > modified_since]
 
         return matching_files
