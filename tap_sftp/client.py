@@ -62,7 +62,7 @@ class SFTPConnection():
                 password=self.password,
                 pkey=self.key,
                 compress=True,
-                timeout=60
+                timeout=120
             )
             self.sftp = ssh_client.open_sftp()
         except (AuthenticationException, SSHException) as ex:
