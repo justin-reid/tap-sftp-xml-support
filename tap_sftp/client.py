@@ -54,17 +54,18 @@ class SFTPConnection():
     def _attempt_connection(self):
         client = paramiko.SSHClient()
         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        client.connect(
-            hostname=self.host,
-            port=self.port,
-            username=self.username,
-            password=self.password,
-            pkey=self.key,
-            compress=True,
-            timeout=120
-        )
-        self.sftp = client.open_sftp()
-
+        client.get_transport().get_security_options().key_types = ['ssh-rsa', 'ecdsa-sha2-nistp256']
+        try:
+            client.connect(
+                hostname=self.host,
+                port=self.port,
+                username=self.username,
+                password=self.password,
+                pkey=self.key,
+                compress=True,
+                timeout=120
+            )
+            self.sftp = client.open_sftp()
         except paramiko.AuthenticationException:
             print("Authentication failed, please verify your credentials.")
         except paramiko.SSHException as sshException:
@@ -76,6 +77,7 @@ class SFTPConnection():
         finally:
             if client:
                 client.close()
+
     def close(self):
         if self.sftp is not None:
             self.sftp.close()
