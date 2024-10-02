@@ -44,7 +44,7 @@ Create a `config.json` file with connection details to snowflake.
                 "encoding": "utf-8",
                 "sanitize_header": false,
                 "skip_rows": 0,
-                "infer_schema": false,
+                "infer_schema": false
             }
         ],
         "xml_fields": [],
@@ -54,7 +54,7 @@ Create a `config.json` file with connection details to snowflake.
             "gnupghome": "/your/dir/.gnupg",
             "passphrase": "your_gpg_passphrase"
         },
-        "private_key_file": "Optional_Path",
+        "private_key_file": "Optional_Path"
     }
    ```
    If using the decryption feature you must pass the configs shown above, including the AWS SSM parameter name for where the decryption private key is stored. In order to retrieve this parameter the runtime environment must have access to SSM through IAM environment variables (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_SESSION_TOKEN).
@@ -76,11 +76,11 @@ Create a `config.json` file with connection details to snowflake.
    - `delimiter`: A one-character string delimiter used to separate fields. Default, is `,`.
 
    The following table configuration fields are optional:
-   - `key_properties`: Array containing the unique keys of the table. Defaults to `['_sdc_source_file', '_sdc_source_lineno']`, representing the file name and line number. Specify an emtpy array (`[]`) to load all new files without a replication key
+   - `key_properties`: Array containing the unique keys of the table. Defaults to `['_sdc_source_file', '_sdc_source_lineno']`, representing the file name and line number. Specify an empty array (`[]`) to load all new files without a replication key
    - `encoding`: File encoding, defaults to `utf-8`
    - `sanitize_header`: Boolean, specifies whether to clean up header names so that they are more likely to be accepted by a target SQL database
    - `skip_rows`: Integer, specifies the number of rows to skip at the top of the file to handle non-data content like comments or other text. Default 0.
-   - `infer_schema`: Boolean. If set to true (the default value), the tap will attempt to detect the data type of the fields. Otherwise all fields will be treated as strings.
+   - `infer_schema`: Boolean. If set to true (the default value), the tap will attempt to detect the data type of the fields. Otherwise, all fields will be treated as strings.
 
 ## Discovery mode:
 
@@ -115,7 +115,7 @@ $ tap-sftp --config config.json --catalog catalog.json --state state.json
   pip install tox
 ```
 
-2. To run unit tests:
+1. To run unit tests:
 ```
   tox
 ```
