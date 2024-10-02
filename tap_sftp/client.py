@@ -52,36 +52,30 @@ class SFTPConnection():
         LOGGER.info('Connection successful')
 
     def _attempt_connection(self):
-        try:
+        client = paramiko.SSHClient()
+        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        client.connect(
+            hostname=self.host,
+            port=self.port,
+            username=self.username,
+            password=self.password,
+            pkey=self.key,
+            compress=True,
+            timeout=120
+        )
+        self.sftp = client.open_sftp()
 
-            ssh_client = paramiko.SSHClient()
-            ssh_client.set_missing_host_key_policy(paramiko.RejectPolicy())
-            ssh_client.connect(
-               hostname=self.host,
-               port=self.port,
-               username=self.username,
-               password=self.password,
-               pkey=self.key,
-               compress=True,
-               timeout=120
-            )
-
-            # Get the transport from the client
-            transport = ssh_client.get_transport()
-            
-            # Set the allowed algorithms
-            preferred_keys = ['ecdsa-sha2-nistp256', 'rsa', 'ssh-ed25519']
-            transport._preferred_kex = preferred_keys
-            transport._preferred_keys = preferred_keys
-            
-            # Now open the SFTP session
-            self.sftp = ssh_client.open_sftp()
-        except (AuthenticationException, SSHException) as ex:
-            LOGGER.warning('Connection attempt failed: %s', ex)
-            if ssh_client:
-                ssh_client.close()
-            raise
-
+        except paramiko.AuthenticationException:
+            print("Authentication failed, please verify your credentials.")
+        except paramiko.SSHException as sshException:
+            print(f"Could not establish SSH connection: {sshException}")
+        except paramiko.BadHostKeyException as badHostKeyException:
+            print(f"Bad host key: {badHostKeyException}")
+        except Exception as e:
+            print(f"Failed to connect or establish SFTP session: {e}")
+        finally:
+            if client:
+                client.close()
     def close(self):
         if self.sftp is not None:
             self.sftp.close()
