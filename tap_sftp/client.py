@@ -53,34 +53,28 @@ class SFTPConnection():
 
     def _attempt_connection(self):
         try:
-            paramiko.transport.Transport._preferred_kex = (
-                'ecdh-sha2-nistp256',
-                'ecdh-sha2-nistp384',
-                'ecdh-sha2-nistp521',
-                'diffie-hellman-group14-sha1',
-                'diffie-hellman-group1-sha1',
-            )
-            paramiko.transport.Transport._preferred_pubkeys = (
-                    "ssh-ed25519",
-                    "ecdsa-sha2-nistp256",
-                    "ecdsa-sha2-nistp384",
-                    "ecdsa-sha2-nistp521",
-                    "ssh-rsa",  # this is moved 2 positions up
-                    "rsa-sha2-512",
-                    "rsa-sha2-256",
-                    "ssh-dss",
-                )
+
             ssh_client = paramiko.SSHClient()
-            ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            ssh_client.set_missing_host_key_policy(paramiko.RejectPolicy())
             ssh_client.connect(
-                hostname=self.host,
-                port=self.port,
-                username=self.username,
-                password=self.password,
-                pkey=self.key,
-                compress=True,
-                timeout=120
+               hostname=self.host,
+               port=self.port,
+               username=self.username,
+               password=self.password,
+               pkey=self.key,
+               compress=True,
+               timeout=120
             )
+
+            # Get the transport from the client
+            transport = ssh_client.get_transport()
+            
+            # Set the allowed algorithms
+            preferred_keys = ['ecdsa-sha2-nistp256', 'rsa', 'ssh-ed25519']
+            transport._preferred_kex = preferred_keys
+            transport._preferred_keys = preferred_keys
+            
+            # Now open the SFTP session
             self.sftp = ssh_client.open_sftp()
         except (AuthenticationException, SSHException) as ex:
             LOGGER.warning('Connection attempt failed: %s', ex)
