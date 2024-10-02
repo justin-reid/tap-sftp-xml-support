@@ -55,19 +55,24 @@ class SFTPConnection():
         try:
             transport = paramiko.Transport((self.host, self.port))
             transport.use_compression(True)
-            transport.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-            transport.connect(
-                username=self.username,
-                password=self.password,
-                hostname=self.host,
-                port=self.por
-                hostkey=None,
-                pkey=self.key,
-                compress=True,
-                timeout=120,
-             )
-            ssh_client = paramiko.SSHClient().from_transport(transport)
-            self.sftp = ssh_client.open_sftp()
+            transport.connect(username=self.username, password=self.password, hostkey=None, pkey=self.key)
+            self.sftp = paramiko.SFTPClient.from_transport(transport)
+
+#             transport = paramiko.Transport(self.host, self.port)
+#             transport.use_compression(True)
+#             transport.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+#             transport.connect(
+#                 username=self.username,
+#                 password=self.password,
+#                 hostname=self.host,
+#                 port=self.por
+#                 hostkey=None,
+#                 pkey=self.key,
+#                 compress=True,
+#                 timeout=120,
+#              )
+#             ssh_client = paramiko.SSHClient().from_transport(transport)
+#             self.sftp = ssh_client.open_sftp()
         except (AuthenticationException, SSHException) as ex:
             LOGGER.warning('Connection attempt failed: %s', ex)
             if ssh_client:
