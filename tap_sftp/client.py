@@ -80,8 +80,8 @@ class SFTPConnection():
             raise
 
     def close(self):
-#         if self.sftp is not None:
-#             self.sftp.close()
+        if self.sftp is not None:
+            self.sftp.close()
         # decrypted files require an open file object, so close it
         if self.decrypted_file:
             self.decrypted_file.close()
